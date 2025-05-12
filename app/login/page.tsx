@@ -22,48 +22,63 @@ export default function Login() {
     setLoading(true)
 
     try {
-      // En un entorno de desarrollo, usamos la API local
-      // En producción, usamos la URL de la función GAS
+      // Para GAS necesitamos usar un enfoque diferente debido a CORS
       const isProduction = process.env.NODE_ENV === "production"
       const apiUrl = isProduction
-        ? "https://script.google.com/macros/s/AKfycbzAJEQtXMj7vPlQkeOPfe0hL-hHTkVsHJp5pDPsi_OlHgat-OGtWDtzh79ydJj1iaeN6w/exec"
+        ? "https://script.google.com/macros/s/AKfycbwylvGDM9sqOofSPfTIU1tPyTOJqPGAfUcXhRnq3gQtItF_RCutecsGPiuArr01S0PoKw/exec"
         : "/api/auth"
 
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username,
-          password,
-          // Usar los nombres de parámetros que espera tu función GAS
+      if (isProduction) {
+        // Enfoque para producción: redirección con parámetros
+        const params = new URLSearchParams({
           usuario: username,
           contrasena: password,
-        }),
-      })
+          callback: window.location.origin + "/auth-callback",
+        }).toString()
 
-      const data = await response.json()
+        // Guardar el nombre de usuario en sessionStorage para recuperarlo después
+        sessionStorage.setItem("pendingUsername", username)
 
-      if (data.success) {
-        // Guardar información del usuario en localStorage
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            username,
-            role: data.role || data.rol, // Manejar ambos formatos de respuesta
-            isAuthenticated: true,
-          }),
-        )
-
-        // Redirigir al portal
-        router.push("/portal")
+        // Redirigir a GAS con parámetros
+        window.location.href = `${apiUrl}?${params}`
+        return // Detener la ejecución aquí
       } else {
-        toast({
-          title: "Error de autenticación",
-          description: data.message || data.error || "Usuario o contraseña incorrectos",
-          variant: "destructive",
+        // En desarrollo, seguimos usando fetch
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username,
+            password,
+            usuario: username,
+            contrasena: password,
+          }),
         })
+
+        const data = await response.json()
+
+        if (data.success) {
+          // Guardar información del usuario en localStorage
+          localStorage.setItem(
+            "user",
+            JSON.stringify({
+              username,
+              role: data.role || data.rol, // Manejar ambos formatos de respuesta
+              isAuthenticated: true,
+            }),
+          )
+
+          // Redirigir al portal
+          router.push("/portal")
+        } else {
+          toast({
+            title: "Error de autenticación",
+            description: data.message || data.error || "Usuario o contraseña incorrectos",
+            variant: "destructive",
+          })
+        }
       }
     } catch (error) {
       toast({
