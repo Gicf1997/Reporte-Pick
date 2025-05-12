@@ -82,14 +82,14 @@ export default function Portal() {
             <>
               <TabsContent value="dashboard" className="h-[calc(100vh-140px)]">
                 <iframe
-                  src="https://script.googleusercontent.com/macros/echo?user_content_key=AKfycbyj4h8m5_44SBNDpsMGcO4AJTNkpqO7cHRy_vnEYYcIU_DZHHT5IS4u5exMX8lOac75"
+                  src="https://script.google.com/macros/s/AKfycbyj4h8m5_44SBNDpsMGcO4AJTNkpqO7cHRy_vnEYYcIU_DZHHT5IS4u5exMX8lOac75/exec"
                   className="w-full h-full border-0"
                   title="Dashboard"
                 />
               </TabsContent>
               <TabsContent value="administracion" className="h-[calc(100vh-140px)]">
                 <iframe
-                  src="https://script.googleusercontent.com/macros/echo?user_content_key=AKfycbyH9b_E-knT2OsbSqKcEoS5fLU4U54arQ8XRWUxA5Z9MRVIEI30nQjcB-sk4mZx8xAg"
+                  src="https://script.google.com/macros/s/AKfycbyH9b_E-knT2OsbSqKcEoS5fLU4U54arQ8XRWUxA5Z9MRVIEI30nQjcB-sk4mZx8xAg/exec"
                   className="w-full h-full border-0"
                   title="Administración"
                 />
@@ -99,7 +99,7 @@ export default function Portal() {
 
           <TabsContent value="preparacion" className="h-[calc(100vh-140px)]">
             <iframe
-              src="https://script.googleusercontent.com/macros/echo?user_content_key=AKfycbwLCEICqyo_W7iyS-SWaX9QpmS4jk73ebfFRfEiUjzPvl8WnKIL9m_X8x5Wdz3icJeX"
+              src="https://script.google.com/macros/s/AKfycbwLCEICqyo_W7iyS-SWaX9QpmS4jk73ebfFRfEiUjzPvl8WnKIL9m_X8x5Wdz3icJeX/exec"
               className="w-full h-full border-0"
               title="Preparación"
             />
