@@ -10,6 +10,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/use-toast"
 
+// Función para generar hash SHA-256
+async function generarHash256(texto: string): Promise<string> {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(texto)
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
+}
+
 export default function Login() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
@@ -22,65 +31,43 @@ export default function Login() {
     setLoading(true)
 
     try {
-      // Para GAS necesitamos usar un enfoque diferente debido a CORS
-      const isProduction = process.env.NODE_ENV === "production"
-      const apiUrl = isProduction
-        ? "https://script.google.com/macros/s/AKfycbwylvGDM9sqOofSPfTIU1tPyTOJqPGAfUcXhRnq3gQtItF_RCutecsGPiuArr01S0PoKw/exec"
-        : "/api/auth"
+      // Generar hash de la contraseña
+      const hash = await generarHash256(password)
 
-      if (isProduction) {
-        // Enfoque para producción: redirección con parámetros
-        const params = new URLSearchParams({
-          usuario: username,
-          contrasena: password,
-          callback: window.location.origin + "/auth-callback",
-        }).toString()
+      // URL del script de Google
+      const scriptUrl =
+        "https://script.google.com/macros/s/AKfycbzwAI_iR6jTwd3fj37NPKY5nkaJpV9EboEnbUZj7_4EYx7kQFRnujEBZYz9uBo4L5dxog/exec"
 
-        // Guardar el nombre de usuario en sessionStorage para recuperarlo después
-        sessionStorage.setItem("pendingUsername", username)
+      // Construir URL con parámetros
+      const url = `${scriptUrl}?usuario=${encodeURIComponent(username)}&hash=${encodeURIComponent(hash)}`
 
-        // Redirigir a GAS con parámetros
-        window.location.href = `${apiUrl}?${params}`
-        return // Detener la ejecución aquí
-      } else {
-        // En desarrollo, seguimos usando fetch
-        const response = await fetch(apiUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
+      // Realizar la solicitud GET
+      const response = await fetch(url)
+      const data = await response.json()
+
+      if (data.rol) {
+        // Guardar información del usuario en localStorage
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
             username,
-            password,
-            usuario: username,
-            contrasena: password,
+            name: data.nombre || username,
+            role: data.rol,
+            isAuthenticated: true,
           }),
+        )
+
+        // Redirigir al portal
+        router.push("/portal")
+      } else {
+        toast({
+          title: "Error de autenticación",
+          description: "Usuario o contraseña incorrectos",
+          variant: "destructive",
         })
-
-        const data = await response.json()
-
-        if (data.success) {
-          // Guardar información del usuario en localStorage
-          localStorage.setItem(
-            "user",
-            JSON.stringify({
-              username,
-              role: data.role || data.rol, // Manejar ambos formatos de respuesta
-              isAuthenticated: true,
-            }),
-          )
-
-          // Redirigir al portal
-          router.push("/portal")
-        } else {
-          toast({
-            title: "Error de autenticación",
-            description: data.message || data.error || "Usuario o contraseña incorrectos",
-            variant: "destructive",
-          })
-        }
       }
     } catch (error) {
+      console.error("Error de autenticación:", error)
       toast({
         title: "Error",
         description: "Ocurrió un error al intentar iniciar sesión",

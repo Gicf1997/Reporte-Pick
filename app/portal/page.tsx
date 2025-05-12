@@ -8,6 +8,7 @@ import { LogOut } from "lucide-react"
 
 interface User {
   username: string
+  name?: string
   role: string
   isAuthenticated: boolean
 }
@@ -54,7 +55,7 @@ export default function Portal() {
         <div className="flex items-center gap-4">
           {user && (
             <div className="text-sm">
-              Usuario: <span className="font-medium">{user.username}</span> | Rol:{" "}
+              Usuario: <span className="font-medium">{user.name || user.username}</span> | Rol:{" "}
               <span className="font-medium">{user.role === "ADMIN" ? "Administrador" : "Usuario"}</span>
             </div>
           )}
